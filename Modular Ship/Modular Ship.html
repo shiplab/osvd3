@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>Modular Ship</title>
+</head>
+
+<body>
+
+<h1>Modular Ship</h1>
+
+<form id="frm1">
+
+<p> Please choose among our wide portfolio of Bow modules: <select onchange="call()">
+  <option value="B1">X-BOW</option>
+  <option value="B2">Conventional</option>
+</select> </p>
+
+<p> Please choose a combination of Superstructure modules: <select onchange="call()">
+  <option value="S1">Bridge</option>
+  <option value="S2">Bridge plus acc.</option>
+</select> </p>
+
+<p> Please choose number of Cargo Hold modules: <select onchange="call()">
+  <option value="CH1">1 Cargo Hold</option>
+  <option value="CH2">2 Cargo Holds</option>
+  <option value="CH3">3 Cargo Holds</option>  
+</select> </p>
+
+<p> Please choose a Propeller module: <select onchange="call()">
+  <option value="P1">Shaft</option>
+  <option value="P2">Azimuth</option>
+</select> </p>
+
+<p> Please choose a Cargo Handling module: <select onchange="call()">
+  <option value="C1">Crane</option>
+  <option value="W1">Winch</option>
+</select> </p>
+  
+<input type="button" onclick="call()" value="Show results">
+</form>
+
+<br>
+
+<table border="1" style="width:20%" align="center">
+  <tr>
+    <th colspan="2">Ship Model</th>
+  </tr>
+  <tr>
+  <td>Property</td>
+  <td>Value</td>		
+  </tr>
+  <tr>
+    <td>Length (mm.)</td>
+    <td id="length"></td>		
+  </tr>
+  <tr>
+    <td>Beam (mm.)</td>
+    <td id="beam"></td>		
+  </tr>
+  <tr>
+    <td>Draft (mm.)</td>
+    <td id="draft"></td>		
+  </tr>
+  <tr>
+    <td>Depth (mm.)</td>
+    <td id="depth"></td>		
+  </tr>
+  <tr>
+    <td>Cost (EUR)</td>
+    <td id="cost"></td>		
+  </tr>
+  <tr>
+    <td>Material</td>
+    <td id="material"></td>		
+  </tr>
+</table>
+
+<br>
+
+<table border="1" style="width:20%; float: left">
+  <tr>
+    <th colspan="2">Bow Module</th>
+  </tr>
+  <tr>
+  <td>Property</td>
+  <td>Value</td>		
+  </tr>
+  <tr>
+    <td>Length (mm)</td>
+    <td id="blength"></td>		
+  </tr>
+  <tr>
+    <td>Bulb</td>
+    <td id="bulb"></td>		
+  </tr>
+  <tr>
+    <td>Cost (EUR)</td>
+    <td id="bco"></td>		
+  </tr>
+  <tr>
+    <td>Comments</td>
+    <td id="bcom"></td>		
+  </tr>
+</table>
+
+<table border="1" style="width:20%; float: left">
+  <tr>
+    <th colspan="2">Bridge (+ Acc.) Module</th>
+  </tr>
+  <tr>
+  <td>Property</td>
+  <td>Value</td>		
+  </tr>
+  <tr>
+    <td>Length (mm)</td>
+    <td id="brlength"></td>		
+  </tr>
+  <tr>
+    <td>Decks</td>
+    <td id="decks"></td>		
+  </tr>
+  <tr>
+    <td>Cost (EUR)</td>
+    <td id="brcost"></td>		
+  </tr>
+  <tr>
+    <td>Comments</td>
+    <td id="brcom"></td>		
+  </tr>
+</table>
+
+<table border="1" style="width:20%" align="left">
+  <tr>
+    <th colspan="2">Cargo Hold Module</th>
+  </tr>
+  <tr>
+  <td>Property</td>
+  <td>Value</td>		
+  </tr>
+  <tr>
+    <td>Length (mm.)</td>
+    <td id="chlength"></td>		
+  </tr>
+  <tr>
+    <td>Cost (EUR)</td>
+    <td id="chcost"></td>		
+  </tr>
+   <tr>
+    <td>Comments</td>
+    <td id="chcom"></td>		
+  </tr>
+</table>
+
+<table border="1" style="width:20%; float: left">
+  <tr>
+    <th colspan="2">Propeller Module</th>
+  </tr>
+  <tr>
+  <td>Property</td>
+  <td>Value</td>		
+  </tr>
+  <tr>
+    <td>Length (mm.)</td>
+    <td id="plength"></td>		
+  </tr>
+  <tr>
+    <td>Cost (EUR)</td>
+    <td id="pcost"></td>		
+  </tr>
+  <tr>
+    <td>Type</td>
+    <td id="ptype"></td>		
+  </tr>
+  <tr>
+    <td>Comments</td>
+    <td id="pcom"></td>		
+  </tr>
+</table>
+
+<table border="1" style="width:20%; float: left">
+  <tr>
+    <th colspan="2">Crane/Winch Module</th>
+  </tr>
+  <tr>
+  <td>Property</td>
+  <td>Value</td>		
+  </tr>
+  <tr>
+    <td>Capacity (t/t*m)</td>
+    <td id="cracap"></td>		
+  </tr>
+  <tr>
+    <td>Cost (EUR)</td>
+    <td id="craco"></td>		
+  </tr>
+  <tr>
+    <td>Comments</td>
+    <td id="cracom"></td>		
+  </tr>
+</table>
+
+<script src="Module Handling Object.js"></script>
+<script>
+function call() {
+	//get all user choices from the html form.
+    var x = document.getElementById("frm1");
+
+	//read the user choice as a string, transform it to variable and define as the corresponding ship module.
+	Ship.bow=window[x.elements[0].value];
+	Ship.sup=window[x.elements[1].value];
+	Ship.car=window[x.elements[2].value];
+	Ship.pro=window[x.elements[3].value];
+	Ship.cra=window[x.elements[4].value];
+	
+	//display ship information on html page, taken from the object.
+	document.getElementById("length").innerHTML = Ship.length();
+	document.getElementById("beam").innerHTML = Ship.beam();
+	document.getElementById("draft").innerHTML = Ship.draft();
+	document.getElementById("depth").innerHTML = Ship.depth();
+	document.getElementById("cost").innerHTML = Ship.cost();
+	document.getElementById("material").innerHTML = Ship.material;
+	
+	document.getElementById("blength").innerHTML = Ship.bow.length;
+	document.getElementById("bulb").innerHTML = Ship.bow.bulb;
+	document.getElementById("bco").innerHTML = Ship.bow.cost;	
+	document.getElementById("bcom").innerHTML = Ship.bow.comment;
+
+	document.getElementById("brlength").innerHTML = Ship.sup.length;
+	document.getElementById("decks").innerHTML = Ship.sup.decks;
+	document.getElementById("brcost").innerHTML = Ship.sup.cost;	
+	document.getElementById("brcom").innerHTML = Ship.sup.comment;
+	
+	document.getElementById("chlength").innerHTML = Ship.car.length;
+	document.getElementById("chcost").innerHTML = Ship.car.cost;
+	document.getElementById("chcom").innerHTML = Ship.car.comment;
+	
+	document.getElementById("plength").innerHTML = Ship.pro.length;
+	document.getElementById("pcost").innerHTML = Ship.pro.cost;
+	document.getElementById("ptype").innerHTML = Ship.pro.cost;
+	document.getElementById("pcom").innerHTML = Ship.pro.comment;
+	
+	document.getElementById("cracap").innerHTML = Ship.cra.capacity;
+	document.getElementById("craco").innerHTML = Ship.cra.cost;
+	document.getElementById("cracom").innerHTML = Ship.cra.comment;
+}
+</script>
+
+</body>
+</html>

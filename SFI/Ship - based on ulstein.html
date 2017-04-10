@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>Ship - SFI</title>
+</head>
+
+<body>
+
+<h1>Ship SFI</h1>
+
+<p id=1></p>
+
+<script src="SFI - Javascript (Ship) - based on ulstein.js"> </script>
+<script>
+document.getElementById(1).innerHTML = "IMO Code: " + Ship.IMO + "</p>";
+document.getElementById(1).innerHTML = document.getElementById(1).innerHTML + "Main Dimensions: " + "</p>";
+document.getElementById(1).innerHTML = document.getElementById(1).innerHTML + "LoA: " + Ship.MainDimensions.LoA + "</p>";
+document.getElementById(1).innerHTML = document.getElementById(1).innerHTML + "Lpp: " + Ship.MainDimensions.Lpp + "</p>";
+document.getElementById(1).innerHTML = document.getElementById(1).innerHTML + "B: " + Ship.MainDimensions.B + "</p>";
+document.getElementById(1).innerHTML = document.getElementById(1).innerHTML + "D: " + Ship.MainDimensions.D + "</p>";
+document.getElementById(1).innerHTML = document.getElementById(1).innerHTML + "d: " + Ship.MainDimensions.d + "</p>";
+
+document.getElementById(1).innerHTML = document.getElementById(1).innerHTML + "SFI: " + "</p>";
+
+/*When checking through the object properties, it is necessary to verify that we are dealing with another SFI code so we can go further into 
+the hierarchy. Thus the (isNaN(prop)===false) clauses.*/
+
+for (var prop in Ship.SFI) {
+	if (isNaN(prop)===false) {
+		document.getElementById(1).innerHTML = document.getElementById(1).innerHTML + prop + " Main Group: " + Ship.SFI[prop].name + "</p>";
+		for (var prop1 in Ship.SFI[prop]) {
+			if (isNaN(prop1)===false) {
+				document.getElementById(1).innerHTML = document.getElementById(1).innerHTML + prop + "." + prop1 + " Group: " + Ship.SFI[prop][prop1].name + "</p>";
+				for (var prop2 in Ship.SFI[prop][prop1]) {
+					if (isNaN(prop2)===false) {
+						document.getElementById(1).innerHTML = document.getElementById(1).innerHTML + prop + "." + prop1 + "." + prop2 + " Sub Group: " + Ship.SFI[prop][prop1][prop2].name + "</p>";
+						document.getElementById(1).innerHTML = document.getElementById(1).innerHTML + "Sub Group person-hours: " + Ship.SFI[prop][prop1][prop2].hours + "</p>";
+						for (var prop3 in Ship.SFI[prop][prop1][prop2]) {
+							if (isNaN(prop3)===false) {
+								document.getElementById(1).innerHTML = document.getElementById(1).innerHTML + prop + "." + prop1 + "." + prop2 + "." + prop3 + " Detail Code: " + Ship.SFI[prop][prop1][prop2][prop3].name + "</p>";
+								 for (var prop4 in Ship.SFI[prop][prop1][prop2][prop3]) {
+									if (isNaN(prop4)===false) {
+										document.getElementById(1).innerHTML = document.getElementById(1).innerHTML + prop + "." + prop1 + "." + prop2 + "." + prop3 + "." + prop4 + " IdTag: " + Ship.SFI[prop][prop1][prop2][prop3][prop4].name + "</p>";
+										document.getElementById(1).innerHTML = document.getElementById(1).innerHTML + "IdTag cost: " + Ship.SFI[prop][prop1][prop2][prop3][prop4].cost + "</p>";
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+
+</script>
+
+</body>
+</html>
