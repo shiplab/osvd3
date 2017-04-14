@@ -10,9 +10,9 @@ Tools:
 	
 	Project documented at: http://www.shiplab.hials.org/?page_id=179.
 
-2. Modular Ship table
+2. Modular Ship
 	
-	Includes dynamic table with basic information about the chosen modules and the ship as a whole.
+	Dynamic table with basic information about the chosen modules and the ship as a whole.
 	
 	Project documented at: http://www.shiplab.hials.org/?page_id=356.
 
