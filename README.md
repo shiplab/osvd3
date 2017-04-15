@@ -6,7 +6,7 @@ Tools:
 
 1. SFI Tools
 	
-	Includes descriptive list and D3 tree based on the SFI Group System. Per default, it includes the ship components' names, cost and corresponding person-hours.
+	Includes descriptive list and [D3 tree](https://bl.ocks.org/mbostock/4339083) based on the SFI Group System. Per default, it includes the ship components' names, cost and corresponding person-hours.
 	
 	Project documented at: http://www.shiplab.hials.org/?page_id=179.
 
