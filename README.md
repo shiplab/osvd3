@@ -18,4 +18,4 @@ Tools:
 
 3. OSV Scatter Plot
 
-	Project documented on the wiki.
+	Project documented on [wiki](https://github.com/icarofonseca/ShipLab/wiki).
