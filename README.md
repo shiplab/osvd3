@@ -1,6 +1,6 @@
 # ShipLab
 
-Compilation of ship design web tools developed at Ship Lab, NTNU in Aalesund.  
+Compilation of ship design web tools developed at [Ship Lab, NTNU in Aalesund](http://www.shiplab.hials.org/).  
 
 Tools:
 
