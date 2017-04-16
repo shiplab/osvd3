@@ -21,4 +21,3 @@ Tools:
 	Scatter plot and regression line automatically generated from Excel OSV register input.
 	
 	Project documented on [wiki](https://github.com/icarofonseca/ShipLab/wiki).
-	
