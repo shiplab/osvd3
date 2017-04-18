@@ -1060,16 +1060,7 @@
             data_selection_isselectable: function () { return true; },
             data_selection_multiple: true,
             data_selection_draggable: false,
-            data_onclick: function (d) {
-				document.getElementById("Vessel Data").innerHTML = ""; // initializing Vessel Data list
-				// d.id identifies ship subtype, d.index identifies its position in subtype list. position_plot[d.id][d.index] gives its position in allShips
-				for (var prop in allShips[position_plot[d.id][d.index]]){ // for each property inside the ship corresponding to the clicked point
-					if (typeof allShips[position_plot[d.id][d.index]][prop] !== 'undefined'){ // if the property has a value
-						// add its value to the Vessel Data list and break a line
-						document.getElementById("Vessel Data").innerHTML=document.getElementById("Vessel Data").innerHTML + prop+": "+ allShips[position_plot[d.id][d.index]][prop] + "<br>";
-					}
-				}
-			},
+            data_onclick: function () {},
             data_onmouseover: function () {},
             data_onmouseout: function () {},
             data_onselected: function () {},
@@ -1097,9 +1088,7 @@
             legend_inset_x: 10,
             legend_inset_y: 0,
             legend_inset_step: undefined,
-            legend_item_onclick: function(id) {
-				graph.regbytype(id); // update regression line with respect to hidden subtypes.
-			},
+            legend_item_onclick: undefined,
             legend_item_onmouseover: undefined,
             legend_item_onmouseout: undefined,
             legend_equally: false,

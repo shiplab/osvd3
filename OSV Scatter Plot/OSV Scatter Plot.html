@@ -176,6 +176,16 @@ function plot_chart(coordx,coordy,miny,maxy,minx,maxx,xname,yname){
 		type: 'scatter', // all data series should be plotted as scatterplots
 		types: {
 			Regression: 'line', // except the regression line
+		},
+		onclick: function (d) {
+			document.getElementById("Vessel Data").innerHTML = ""; // initializing Vessel Data list
+			// d.id identifies ship subtype, d.index identifies its position in subtype list. position_plot[d.id][d.index] gives its position in allShips
+			for (var prop in allShips[position_plot[d.id][d.index]]){ // for each property inside the ship corresponding to the clicked point
+				if (typeof allShips[position_plot[d.id][d.index]][prop] !== 'undefined'){ // if the property has a value
+					// add its value to the Vessel Data list and break a line
+					document.getElementById("Vessel Data").innerHTML=document.getElementById("Vessel Data").innerHTML + prop+": "+ allShips[position_plot[d.id][d.index]][prop] + "<br>";
+				}
+			}
 		}
 	}
 	
@@ -201,6 +211,13 @@ function plot_chart(coordx,coordy,miny,maxy,minx,maxx,xname,yname){
 		},	
 		zoom: {
 			enabled: true
+		},
+		legend: {
+			item: {
+				onclick: function (id) {
+					graph.regbytype(id); // update regression line with respect to hidden subtypes.
+				}
+			}
 		}
 	});
 	
@@ -256,7 +273,7 @@ function plot_chart(coordx,coordy,miny,maxy,minx,maxx,xname,yname){
 	}
 	
 	/* This next method is intended to update the regression line as the user hides or shows one or more OSV subtypes, but it is still under development.
-	It is called from C3.js, line 1100. Please consult Known Issues section for more information.*/
+	Please consult Issues section for more information.*/
 	this.regbytype = function(typeid){
 		filttypey=[]; // initializing empty vectors to store filtered x and y subtypes
 		filttypex=[];
@@ -318,7 +335,7 @@ function plot_chart(coordx,coordy,miny,maxy,minx,maxx,xname,yname){
 	});
 	
 }
-	
+
 function findLineByLeastSquares(cordex, cordey) { // function to calculate the regression line
 	var k=0; // sample points counter 
 	dataset=[]; // initializing vector to store regression data
@@ -431,7 +448,7 @@ function findLineByLeastSquares(cordex, cordey) { // function to calculate the r
 		
 		<p id="Regression Formula"></p>
 		
-		<p id="Vessel Data"></p> <!--List with Vessel information, triggered when the user clicks on one point. Called from C3.js, line 1063.-->
+		<p id="Vessel Data"></p> <!--List with Vessel information, triggered when the user clicks on one point.-->
 		
     </body>
 </html> 
