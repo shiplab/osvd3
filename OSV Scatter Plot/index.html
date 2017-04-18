@@ -1,0 +1,437 @@
+
+<!DOCTYPE html>
+<head>
+    <title>OSV Graph</title>
+    
+<script src="shim.js"></script>
+<script src="jszip.js"></script>
+<script src="xlsx.js"></script> <!--Read excel file.-->
+<link href="c3.css" rel="stylesheet" type="text/css"> <!--C3 graphic library.-->
+<script src="d3-3.5.0.min-3b564392.js" charset="utf-8"></script> <!--C3 graphic library.-->
+<script src="c3.js"></script> <!--C3 graphic library.-->
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+<script src="//code.jquery.com/jquery-1.10.2.js"></script>
+<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+    
+</head>
+
+<html>
+        
+        <h1>OSV Graph</h1>
+		
+		
+<button onclick="login();" > Update data from <strong>USC.xlsx</strong> </button> <!--Create update data button.-->
+<br>
+<script type="text/javascript" > 
+var url = "USC.xlsx"; // Name of spreadsheet file with OSV data
+
+function login() { // this function reads the spreadsheet and creates objects with relevant data
+
+var oReq = new XMLHttpRequest();
+oReq.open("GET", url, true);
+oReq.responseType = "arraybuffer";
+
+oReq.onload = function(e) {
+	var arraybuffer = oReq.response;
+
+	// convert data to binary string
+	var data = new Uint8Array(arraybuffer);
+	var arr = new Array();
+	for(var i = 0; i != data.length; ++i) arr[i] = String.fromCharCode(data[i]);
+	var bstr = arr.join("");
+
+	// Call XLSX
+	var workbook = XLSX.read(bstr, {type:"binary"});
+	 
+	// create parent (root) object
+	allShips={};
+
+	// the next steps read the header row to define a ship constructor and drop-down input list
+	allProps=[]; //starts empty
+
+	var alph = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; // we will need this to identify excel columns
+	i=0; // first position on a vector in JS has index 0
+	column=alph[i]; // an excel column is identified by an alphabet letter
+
+	// let's initialize the drop-down list. We'll update it as we read the header row
+	var init_x = "<select onchange=\"preparePlot()\" id=\"drop_namex\">";
+	var init_y = "<select onchange=\"preparePlot()\" id=\"drop_namey\">";
+	var options = "";
+
+	while(typeof workbook.Sheets.OSV_Register[column+1] !== 'undefined'){ //proceed while the header cell is non-empty
+		maxColumn=i; // maximum column we reached so far
+		allProps[i]=workbook.Sheets.OSV_Register[column+1].v; // get the property name on the header cell. A cell is identified by letter + number
+		// update list with new drop-down option:
+		options += "<option value=\""+workbook.Sheets.OSV_Register[column+1].v+"\">"+workbook.Sheets.OSV_Register[column+1].v+"</option>"
+		i++; // proceed to the next column
+		if(i < 26){ // update column letter
+			column=alph[i%26]; // if column is equal to or smaller than Z, its name is the letter itself
+		} else {		
+			column=alph[Math.floor(i/26)-1]+alph[i%26]; // if it is not, it should be a combination of two letters, from AA up to ZZ
+		};
+	}
+
+	// update drop-down list with properties read from header row
+	document.getElementById('selection_x').innerHTML = init_x + options;
+	document.getElementById('selection_y').innerHTML = init_y + options;
+
+	// create a Ship object prototype whose properties are the ones defined on the header row
+	function Ship(input){
+		for (i = 0; i < input.length; i++) {
+		this[allProps[i]]=input[i];
+		}
+	};
+
+	// set up a counter in order to read the following lines and make ship instances
+	j=2;
+
+	// start reading ship instances
+	while(typeof workbook.Sheets.OSV_Register["S"+j] !== 'undefined'){ // all ships on the spreadsheet should have an IMO number on column S
+		shipInput=[]; // create an input vector for the ship instance inside this loop
+		for (i = 0; i <= maxColumn; i++) { // convert i counter to a column index following previous established logic
+			if(i < 26){
+			column=alph[i%26];
+			}else{
+				column=alph[Math.floor(i/26)-1]+alph[i%26];
+			};
+			if(typeof workbook.Sheets.OSV_Register[column+j] !== 'undefined'){ // if a given cell is not empty
+				shipInput[i]=workbook.Sheets.OSV_Register[column+j].v; // add its value to the ship instance input
+			}
+		}
+		allShips[j-1]=new Ship(shipInput); // after filling up the ship input vector, create a new instance
+		j++; // proceed to the next row
+	};
+
+	size_sample = j-2; // sample size is j minus header row minus final, empty row
+	console.log(size_sample+" ships in the sample.");
+	preparePlot(); // call C3 plot
+	}
+
+	oReq.send();
+
+}
+
+function preparePlot(){ // this function parses relevant data for the plot and then calls it
+shipLog = []; // this will keep register of excel rows (ships) which have the required data for the plot
+position={}; // this will do the same, except they are separated by ship subtype
+chosenx=document.getElementById('drop_namex').value; // values chosen by the user for each axis
+choseny=document.getElementById('drop_namey').value;
+/* Initialize plot coordinates as empty. These coordinate objects should follow the C3 template, which includes header 
+coordinates for data categories. Please consult the scatterplot section on the library documentation for more info */
+plotcordx=[];
+plotcordy=[];
+found=false; // this variable will tell us if we have already created a category for a given OSV subtype on the plot.
+y1=0; // initialize plot axes' ranges as all zeros.
+y2=0; // y1 and x1 = minimum value. y2 and x2 = maximum value.
+x1=0;
+x2=0;
+
+/* the following loop will read through the spreadsheet data, discover axes' ranges and store plot 
+coordinates separating OSV subtypes and following the C3 library template */
+for (i = 1; i <= size_sample; i++){ // read through the spreadsheet data (sample size)
+	if (typeof allShips[i][chosenx] !== 'undefined' && typeof allShips[i][choseny] !== 'undefined'){
+	// if this ship has values for both properties chosen by the user
+		shipLog.push(i); // store its index
+		/* the following 4 lines will verify if the ship data is inside the axes' ranges, and 
+		will uptade the ranges if it is not */
+		if (allShips[i][choseny]<y1 || y1==0) {y1=allShips[i][choseny]};
+		if (allShips[i][choseny]>y2) {y2=allShips[i][choseny]};
+		if (allShips[i][chosenx]<x1 || x1==0) {x1=allShips[i][chosenx]};
+		if (allShips[i][chosenx]>x2) {x2=allShips[i][chosenx]};
+		for (j = 0; j < plotcordx.length; j++){ // run through previously stored data
+			if (plotcordx[j][0]==allShips[i].Subtype+"_x") { // if this OSV subtype was already stored previously
+				found=true; // no need to create a new category on the plot
+				plotcordx[j].push(allShips[i][chosenx]); // push the coordinates into the current category
+				plotcordy[j].push(allShips[i][choseny]);
+				position[allShips[i].Subtype].push(i); // push the ship row index into position object
+			}
+		}
+		if (found==false) { // subtype category has not been created yet
+			plotcordx.push([allShips[i].Subtype+"_x"]); // push header coordinate into plotcordx while also creating a lower array level
+			plotcordy.push([allShips[i].Subtype]); // same thing for plotcordy
+			plotcordx[plotcordx.length-1].push(allShips[i][chosenx]); // push x coordinate from ship data into newly created subtype category
+			plotcordy[plotcordy.length-1].push(allShips[i][choseny]); // same thing for y coordinate
+			position[allShips[i].Subtype]=[]; // create an empty category for the newly found OSV subtype in the position object
+			position[allShips[i].Subtype].push(i); // push the current ship row index into it
+		}
+		found=false // start the next loop assuming we have not created the corresponding subtype category
+	}
+}
+
+position_plot = position; // create a new position_plot vector, so we can use position as a backup when filtering points
+console.log(shipLog.length+" ships contain the necessary data.")
+graph = new plot_chart(plotcordx,plotcordy,y1,y2,x1,x2,chosenx,choseny) // call plot with parsed data
+}
+
+function plot_chart(coordx,coordy,miny,maxy,minx,maxx,xname,yname){
+	regression_f = findLineByLeastSquares(coordx, coordy); // we start getting the (first order) regression line coefficients for the input data
+	
+	linex = [['Regression_x',minx,maxx]]; // writing the regression line x coordinates following the C3 template, from smallest to biggest x
+	liney = [['Regression',regression_f[1][0]*minx+regression_f[1][1],regression_f[1][0]*maxx+regression_f[1][1]]]; // and their respective y coordinates
+	
+	data= { // this is the plot data, following the C3 template
+		xs: {},
+		// iris data from R
+		columns: (coordx.concat(linex)).concat(coordy.concat(liney)), // concatenate the regression line coordinates to the scatterplot coordinates
+		type: 'scatter', // all data series should be plotted as scatterplots
+		types: {
+			Regression: 'line', // except the regression line
+		}
+	}
+	
+	for (i = 0; i < coordy.length; i++){
+		data.xs[coordy[i][0]]=coordx[i][0]; // binding the data labels to their respective series using headers
+	}
+	
+	data.xs.Regression='Regression_x'; // also for the regression line
+	
+	var chart = c3.generate({ // plot C3 chart
+		bindto: '#chart',
+		data, // this is where the all the data we organized before goes
+		axis: {
+			x: {
+				label: xname,
+				tick: {
+					fit: false
+				}
+			},
+			y: {
+				label: yname
+			}
+		},	
+		zoom: {
+			enabled: true
+		}
+	});
+	
+	this.filter = function(ymin,ymax,xmin,xmax){ // this is the filter method for a given coordinate range inside the current object
+		filteredy=[]; // initializing empty vectors to store filtered x and y coordinates
+		filteredx=[];
+		position_plot={}; // reinitializing position_plot object
+		k=0; // filtered subtypes counter
+		found_sub=false;
+		xstart=0; // initializing variables to store maximum and minimum x coordinates in the filtered sample
+		xfinish=0; // this will be useful to plot a new regression line
+		
+		for (i = 0; i < coordy.length; i++){ // run through all input OSV subtypes
+			for (j = 1; j < coordy[i].length; j++){ // run through the other coordinates for current subtype
+				if (ymin <= coordy[i][j] && coordy[i][j] <= ymax && xmin <= coordx[i][j] && coordx[i][j] <= xmax && found_sub == false){
+				// if the current point is inside both x and y filtered ranges
+					found_sub = true
+					filteredy[k]=[] // initializing subvector to store coordinates for a given OSV subtype
+					filteredx[k]=[]
+					filteredy[k][0]=coordy[i][0] // copying subtype header coordinates
+					filteredx[k][0]=coordx[i][0]
+					position_plot[coordy[i][0]]=[] // creating a property to store new subtype positions
+					break;
+				}
+			}
+			if (found_sub == true){
+				for (j = 1; j < coordy[i].length; j++){ // run through the other coordinates for current subtype
+					if  (ymin <= coordy[i][j] && coordy[i][j] <= ymax && xmin <= coordx[i][j] && coordx[i][j] <= xmax){
+						filteredy[k].push(coordy[i][j]) // push its coordinates into the corresponding filtered subvectors
+						filteredx[k].push(coordx[i][j])
+						position_plot[coordy[i][0]].push(position[coordy[i][0]][j-1]) // getting position of current point inside allShips object
+						if (coordx[i][j]<xstart || xstart==0) {xstart=coordx[i][j]}; // verify if we should update the regression line coordinates
+						if (coordx[i][j]>xfinish) {xfinish=coordx[i][j]};
+					}
+				}
+				k++ // next OSV subtype
+				found_sub=false // for the next loop
+			}
+		}
+		
+		regression_fil = findLineByLeastSquares(filteredx,filteredy); // get new regression line
+		
+		linex_fil = [['Regression_x',xstart,xfinish]]; // writing new regression line coordinates
+		liney_fil = [['Regression',regression_fil[1][0]*xstart+regression_fil[1][1],regression_fil[1][0]*xfinish+regression_fil[1][1]]];
+		
+		chart.load({ // plot new C3 graph
+			unload: true, // unload previous data
+			columns: (filteredx.concat(linex_fil)).concat(filteredy.concat(liney_fil)), // concatenate filtered coordinates with new regression line
+		});
+		chart.resize(); // replot the chart to avoid bugs
+		chart.flush();
+		
+	}
+	
+	/* This next method is intended to update the regression line as the user hides or shows one or more OSV subtypes, but it is still under development.
+	It is called from C3.js, line 1100. Please consult Known Issues section for more information.*/
+	this.regbytype = function(typeid){
+		filttypey=[]; // initializing empty vectors to store filtered x and y subtypes
+		filttypex=[];
+		k=0; // filtered subtypes counter
+		
+		for (i = 0; i < coordy.length; i++){ // run through all input OSV subtypes
+			if (coordy[i][0] !== typeid){ // if the current subtype was not the selected one
+				filttypey[k]=coordy[i] // then include its coordinates on the new regression line calculation
+				filttypex[k]=coordx[i]
+				k++;
+			}
+		}
+		
+		regression_type = findLineByLeastSquares(filttypex,filttypey); // get new regression line for filtered data
+		
+		// writing new regression line y coordinates:
+		liney_typ = [['Regression',regression_type[1][0]*0+regression_type[1][1],regression_type[1][0]*100+regression_type[1][1]]];
+		
+		setTimeout(function () {
+		chart.load({
+			columns: liney_typ, // update y coordinates for the regression line
+		});	
+		}, 0); // plot without delay
+	}
+	
+	ymin=Math.floor(miny); // defining filter range. in order to grasp the whole sample range:
+	ymax=Math.ceil(maxy); // maximum filter value should round the biggest coordinate up
+	xmin=Math.floor(minx) // minimum filter value should round the smallest coordinate down
+	xmax=Math.ceil(maxx);
+	   
+	$(function() { // this is the slider element for X, taken from the Simple Slider library
+		$( "#slider-range" ).slider({
+		  range: true,
+		  min: xmin, // the original maximum and minimum values were substituted by the filter range
+		  max: xmax,
+		  values: [ xmin, xmax ],
+		  slide: function( event, ui ) {
+			$( "#amount" ).val( ui.values[ 0 ] + " - " + ui.values[ 1 ] );
+		  xmin=ui.values[ 0 ];
+		  xmax=ui.values[ 1 ];
+		  }
+		});
+		$( "#amount" ).val( $( "#slider-range" ).slider( "values", 0 ) +
+		  " - " + $( "#slider-range" ).slider( "values", 1 ) );
+		  
+		$( "#slider-range2" ).slider({ // same thing for Y
+		  range: true,
+		  min: ymin,
+		  max: ymax,
+		  values: [ ymin, ymax ],
+		  slide: function( event, ui ) {
+			$( "#amount2" ).val( ui.values[ 0 ] + " - " + ui.values[ 1 ] );
+		  ymin=ui.values[ 0 ];
+		  ymax=ui.values[ 1 ];
+		  }
+		});
+		$( "#amount2" ).val( $( "#slider-range2" ).slider( "values", 0 ) +
+		  " - " + $( "#slider-range2" ).slider( "values", 1 ) );
+	});
+	
+}
+	
+function findLineByLeastSquares(cordex, cordey) { // function to calculate the regression line
+	var k=0; // sample points counter 
+	dataset=[]; // initializing vector to store regression data
+	
+	// the following loops reads all sample points in the C3 data structure and copy them to a simpler dataset vector to perform the calculations
+	for (var i = 0; i < cordex.length; i++) { // run through OSV subtypes
+		for (var j = 1; j < cordex[i].length; j++) { // run through subtype coordinates
+			dataset[k]=[cordex[i][j],cordey[i][j]]; // copy coordinates to dataset vector
+			k++; // and proceed to the next point in dataset
+		}
+	}
+	
+	var sum_x = 0;
+	var sum_y = 0;
+	var sum_xy = 0;
+	var sum_xx = 0;
+	var sum_yy = 0;
+	var count = 0;
+
+	/*
+	 * We'll use those variables for faster read/write access.
+	 */
+	var x = 0;
+	var y = 0;
+	var values_length = dataset.length;
+	
+	/*
+	 * Nothing to do.
+	 */
+	if (values_length === 0) {
+		return [ [], [] ];
+	}
+	
+	/*
+	 * Calculate the sum for each of the parts necessary.
+	 */
+	for (var v = 0; v < values_length; v++) {
+		x = dataset[v][0];
+		y = dataset[v][1];
+		sum_x += x;
+		sum_y += y;
+		sum_xx += x*x;
+		sum_yy += y*y;
+		sum_xy += x*y;
+		count++;
+	}
+	
+	/*
+	 * Calculate m and b for the formular:
+	 * y = x * m + b
+	 */
+	var m = (count*sum_xy - sum_x*sum_y) / (count*sum_xx - sum_x*sum_x);
+	var b = (sum_y/count) - (m*sum_x)/count;
+	
+	/*
+	 * We will make the x and y result line now
+	 */
+	var result_values = [];
+	
+	for (var v = 0; v  < values_length; v++) {
+		x = dataset[v][0];
+		y = x * m + b;
+		result_values[v] = [x,y]
+	}
+	
+	var r2 = Math.pow((count*sum_xy - sum_x*sum_y)/Math.sqrt((count*sum_xx-sum_x*sum_x)*(count*sum_yy-sum_y*sum_y)),2);
+	
+	document.getElementById("Regression Formula").innerHTML = "y = "+m+"x + " + b + "; r2 = " + r2; // write regression line formula on html
+	return [result_values, [m,b,r2]];
+}
+		
+</script>
+       
+
+        <br>Graph
+		
+		<table border="0">
+            <tr>
+                <td>X axis:</td>
+                <td>Y axis:</td>
+            </tr>
+            <tr>
+                <td><div id="selection_x">...</div></td>
+                <td><div id="selection_y">...</div></td>
+            </tr>
+        </table>
+        
+        <div id="chart"></div>
+		
+		<p>
+		<label for="amount">X axis range:</label>
+		<input type="text" id="amount" readonly style="border:0; font-weight:bold;">
+		</p>
+		 
+		<div id="slider-range" style="margin-left:2%; width:35%;"></div>
+		
+		<p>
+		
+		<label for="amount2">Y axis range:</label>
+		<input type="text" id="amount2" readonly style="border:0; font-weight:bold;">
+		</p>
+		 
+		<div id="slider-range2" style="margin-left:2%; width:35%;"></div>
+
+		<br>
+
+		<input type="button" onclick="graph.filter(ymin,ymax,xmin,xmax)" value="Filter Values">
+
+        <br> <br>
+		
+		<p id="Regression Formula"></p>
+		
+		<p id="Vessel Data"></p> <!--List with Vessel information, triggered when the user clicks on one point. Called from C3.js, line 1063.-->
+		
+    </body>
+</html> 
