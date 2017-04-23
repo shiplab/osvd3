@@ -211,14 +211,14 @@ function plot_chart(coordx,coordy,miny,maxy,minx,maxx,xname,yname){
 		},	
 		zoom: {
 			enabled: true
-		},
+		}/*,
 		legend: {
 			item: {
 				onclick: function (id) {
 					graph.regbytype(id); // update regression line with respect to hidden subtypes.
 				}
 			}
-		}
+		}*/
 	});
 	
 	this.filter = function(ymin,ymax,xmin,xmax){ // this is the filter method for a given coordinate range inside the current object
@@ -304,7 +304,7 @@ function plot_chart(coordx,coordy,miny,maxy,minx,maxx,xname,yname){
 	xmin=Math.floor(minx) // minimum filter value should round the smallest coordinate down
 	xmax=Math.ceil(maxx);
 	   
-	$(function() { // this is the slider element for X, taken from the Simple Slider library
+	$(function() { // this is a jQuery slider element for X
 		$( "#slider-range" ).slider({
 		  range: true,
 		  min: xmin, // the original maximum and minimum values were substituted by the filter range
