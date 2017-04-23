@@ -267,8 +267,6 @@ function plot_chart(coordx,coordy,miny,maxy,minx,maxx,xname,yname){
 			unload: true, // unload previous data
 			columns: (filteredx.concat(linex_fil)).concat(filteredy.concat(liney_fil)), // concatenate filtered coordinates with new regression line
 		});
-		chart.resize(); // replot the chart to avoid bugs
-		chart.flush();
 		
 	}
 	
