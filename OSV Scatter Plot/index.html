@@ -27,84 +27,84 @@ var url = "USC.xlsx"; // Name of spreadsheet file with OSV data
 
 function login() { // this function reads the spreadsheet and creates objects with relevant data
 
-var oReq = new XMLHttpRequest();
-oReq.open("GET", url, true);
-oReq.responseType = "arraybuffer";
+	var oReq = new XMLHttpRequest();
+	oReq.open("GET", url, true);
+	oReq.responseType = "arraybuffer";
 
-oReq.onload = function(e) {
-	var arraybuffer = oReq.response;
+	oReq.onload = function(e) {
+		var arraybuffer = oReq.response;
 
-	// convert data to binary string
-	var data = new Uint8Array(arraybuffer);
-	var arr = new Array();
-	for(var i = 0; i != data.length; ++i) arr[i] = String.fromCharCode(data[i]);
-	var bstr = arr.join("");
+		// convert data to binary string
+		var data = new Uint8Array(arraybuffer);
+		var arr = new Array();
+		for(var i = 0; i != data.length; ++i) arr[i] = String.fromCharCode(data[i]);
+		var bstr = arr.join("");
 
-	// Call XLSX
-	var workbook = XLSX.read(bstr, {type:"binary"});
-	 
-	// create parent (root) object
-	allShips={};
+		// Call XLSX
+		var workbook = XLSX.read(bstr, {type:"binary"});
+		 
+		// create parent (root) object
+		allShips={};
 
-	// the next steps read the header row to define a ship constructor and drop-down input list
-	allProps=[]; //starts empty
+		// the next steps read the header row to define a ship constructor and drop-down input list
+		allProps=[]; //starts empty
 
-	var alph = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; // we will need this to identify excel columns
-	i=0; // first position on a vector in JS has index 0
-	column=alph[i]; // an excel column is identified by an alphabet letter
+		var alph = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; // we will need this to identify excel columns
+		i=0; // first position on a vector in JS has index 0
+		column=alph[i]; // an excel column is identified by an alphabet letter
 
-	// let's initialize the drop-down list. We'll update it as we read the header row
-	var init_x = "<select onchange=\"preparePlot()\" id=\"drop_namex\">";
-	var init_y = "<select onchange=\"preparePlot()\" id=\"drop_namey\">";
-	var options = "";
+		// let's initialize the drop-down list. We'll update it as we read the header row
+		var init_x = "<select onchange=\"preparePlot()\" id=\"drop_namex\">";
+		var init_y = "<select onchange=\"preparePlot()\" id=\"drop_namey\">";
+		var options = "";
 
-	while(typeof workbook.Sheets.OSV_Register[column+1] !== 'undefined'){ //proceed while the header cell is non-empty
-		maxColumn=i; // maximum column we reached so far
-		allProps[i]=workbook.Sheets.OSV_Register[column+1].v; // get the property name on the header cell. A cell is identified by letter + number
-		// update list with new drop-down option:
-		options += "<option value=\""+workbook.Sheets.OSV_Register[column+1].v+"\">"+workbook.Sheets.OSV_Register[column+1].v+"</option>"
-		i++; // proceed to the next column
-		if(i < 26){ // update column letter
-			column=alph[i%26]; // if column is equal to or smaller than Z, its name is the letter itself
-		} else {		
-			column=alph[Math.floor(i/26)-1]+alph[i%26]; // if it is not, it should be a combination of two letters, from AA up to ZZ
-		};
-	}
-
-	// update drop-down list with properties read from header row
-	document.getElementById('selection_x').innerHTML = init_x + options;
-	document.getElementById('selection_y').innerHTML = init_y + options;
-
-	// create a Ship object prototype whose properties are the ones defined on the header row
-	function Ship(input){
-		for (i = 0; i < input.length; i++) {
-		this[allProps[i]]=input[i];
-		}
-	};
-
-	// set up a counter in order to read the following lines and make ship instances
-	j=2;
-
-	// start reading ship instances
-	while(typeof workbook.Sheets.OSV_Register["S"+j] !== 'undefined'){ // all ships on the spreadsheet should have an IMO number on column S
-		shipInput=[]; // create an input vector for the ship instance inside this loop
-		for (i = 0; i <= maxColumn; i++) { // convert i counter to a column index following previous established logic
-			if(i < 26){
-			column=alph[i%26];
-			}else{
-				column=alph[Math.floor(i/26)-1]+alph[i%26];
+		while(typeof workbook.Sheets.OSV_Register[column+1] !== 'undefined'){ //proceed while the header cell is non-empty
+			maxColumn=i; // maximum column we reached so far
+			allProps[i]=workbook.Sheets.OSV_Register[column+1].v; // get the property name on the header cell. A cell is identified by letter + number
+			// update list with new drop-down option:
+			options += "<option value=\""+workbook.Sheets.OSV_Register[column+1].v+"\">"+workbook.Sheets.OSV_Register[column+1].v+"</option>"
+			i++; // proceed to the next column
+			if(i < 26){ // update column letter
+				column=alph[i%26]; // if column is equal to or smaller than Z, its name is the letter itself
+			} else {		
+				column=alph[Math.floor(i/26)-1]+alph[i%26]; // if it is not, it should be a combination of two letters, from AA up to ZZ
 			};
-			if(typeof workbook.Sheets.OSV_Register[column+j] !== 'undefined'){ // if a given cell is not empty
-				shipInput[i]=workbook.Sheets.OSV_Register[column+j].v; // add its value to the ship instance input
-			}
 		}
-		allShips[j-1]=new Ship(shipInput); // after filling up the ship input vector, create a new instance
-		j++; // proceed to the next row
-	};
 
-	size_sample = j-2; // sample size is j minus header row minus final, empty row
-	console.log(size_sample+" ships in the sample.");
-	preparePlot(); // call C3 plot
+		// update drop-down list with properties read from header row
+		document.getElementById('selection_x').innerHTML = init_x + options;
+		document.getElementById('selection_y').innerHTML = init_y + options;
+
+		// create a Ship object prototype whose properties are the ones defined on the header row
+		function Ship(input){
+			for (i = 0; i < input.length; i++) {
+			this[allProps[i]]=input[i];
+			}
+		};
+
+		// set up a counter in order to read the following lines and make ship instances
+		j=2;
+
+		// start reading ship instances
+		while(typeof workbook.Sheets.OSV_Register["S"+j] !== 'undefined'){ // all ships on the spreadsheet should have an IMO number on column S
+			shipInput=[]; // create an input vector for the ship instance inside this loop
+			for (i = 0; i <= maxColumn; i++) { // convert i counter to a column index following previous established logic
+				if(i < 26){
+				column=alph[i%26];
+				}else{
+					column=alph[Math.floor(i/26)-1]+alph[i%26];
+				};
+				if(typeof workbook.Sheets.OSV_Register[column+j] !== 'undefined'){ // if a given cell is not empty
+					shipInput[i]=workbook.Sheets.OSV_Register[column+j].v; // add its value to the ship instance input
+				}
+			}
+			allShips[j-1]=new Ship(shipInput); // after filling up the ship input vector, create a new instance
+			j++; // proceed to the next row
+		};
+
+		size_sample = j-2; // sample size is j minus header row minus final, empty row
+		console.log(size_sample+" ships in the sample.");
+		preparePlot(); // call C3 plot
 	}
 
 	oReq.send();
@@ -112,55 +112,55 @@ oReq.onload = function(e) {
 }
 
 function preparePlot(){ // this function parses relevant data for the plot and then calls it
-shipLog = []; // this will keep register of excel rows (ships) which have the required data for the plot
-position={}; // this will do the same, except they are separated by ship subtype
-chosenx=document.getElementById('drop_namex').value; // values chosen by the user for each axis
-choseny=document.getElementById('drop_namey').value;
-/* Initialize plot coordinates as empty. These coordinate objects should follow the C3 template, which includes header 
-coordinates for data categories. Please consult the scatterplot section on the library documentation for more info */
-plotcordx=[];
-plotcordy=[];
-found=false; // this variable will tell us if we have already created a category for a given OSV subtype on the plot.
-y1=0; // initialize plot axes' ranges as all zeros.
-y2=0; // y1 and x1 = minimum value. y2 and x2 = maximum value.
-x1=0;
-x2=0;
+	shipLog = []; // this will keep register of excel rows (ships) which have the required data for the plot
+	position={}; // this will do the same, except they are separated by ship subtype
+	chosenx=document.getElementById('drop_namex').value; // values chosen by the user for each axis
+	choseny=document.getElementById('drop_namey').value;
+	/* Initialize plot coordinates as empty. These coordinate objects should follow the C3 template, which includes header 
+	coordinates for data categories. Please consult the scatterplot section on the library documentation for more info */
+	plotcordx=[];
+	plotcordy=[];
+	found=false; // this variable will tell us if we have already created a category for a given OSV subtype on the plot.
+	y1=0; // initialize plot axes' ranges as all zeros.
+	y2=0; // y1 and x1 = minimum value. y2 and x2 = maximum value.
+	x1=0;
+	x2=0;
 
-/* the following loop will read through the spreadsheet data, discover axes' ranges and store plot 
-coordinates separating OSV subtypes and following the C3 library template */
-for (i = 1; i <= size_sample; i++){ // read through the spreadsheet data (sample size)
-	if (typeof allShips[i][chosenx] !== 'undefined' && typeof allShips[i][choseny] !== 'undefined'){
-	// if this ship has values for both properties chosen by the user
-		shipLog.push(i); // store its index
-		/* the following 4 lines will verify if the ship data is inside the axes' ranges, and 
-		will uptade the ranges if it is not */
-		if (allShips[i][choseny]<y1 || y1==0) {y1=allShips[i][choseny]};
-		if (allShips[i][choseny]>y2) {y2=allShips[i][choseny]};
-		if (allShips[i][chosenx]<x1 || x1==0) {x1=allShips[i][chosenx]};
-		if (allShips[i][chosenx]>x2) {x2=allShips[i][chosenx]};
-		for (j = 0; j < plotcordx.length; j++){ // run through previously stored data
-			if (plotcordx[j][0]==allShips[i].Subtype+"_x") { // if this OSV subtype was already stored previously
-				found=true; // no need to create a new category on the plot
-				plotcordx[j].push(allShips[i][chosenx]); // push the coordinates into the current category
-				plotcordy[j].push(allShips[i][choseny]);
-				position[allShips[i].Subtype].push(i); // push the ship row index into position object
+	/* the following loop will read through the spreadsheet data, discover axes' ranges and store plot 
+	coordinates separating OSV subtypes and following the C3 library template */
+	for (i = 1; i <= size_sample; i++){ // read through the spreadsheet data (sample size)
+		if (typeof allShips[i][chosenx] !== 'undefined' && typeof allShips[i][choseny] !== 'undefined'){
+		// if this ship has values for both properties chosen by the user
+			shipLog.push(i); // store its index
+			/* the following 4 lines will verify if the ship data is inside the axes' ranges, and 
+			will uptade the ranges if it is not */
+			if (allShips[i][choseny]<y1 || y1==0) {y1=allShips[i][choseny]};
+			if (allShips[i][choseny]>y2) {y2=allShips[i][choseny]};
+			if (allShips[i][chosenx]<x1 || x1==0) {x1=allShips[i][chosenx]};
+			if (allShips[i][chosenx]>x2) {x2=allShips[i][chosenx]};
+			for (j = 0; j < plotcordx.length; j++){ // run through previously stored data
+				if (plotcordx[j][0]==allShips[i].Subtype+"_x") { // if this OSV subtype was already stored previously
+					found=true; // no need to create a new category on the plot
+					plotcordx[j].push(allShips[i][chosenx]); // push the coordinates into the current category
+					plotcordy[j].push(allShips[i][choseny]);
+					position[allShips[i].Subtype].push(i); // push the ship row index into position object
+				}
 			}
+			if (found==false) { // subtype category has not been created yet
+				plotcordx.push([allShips[i].Subtype+"_x"]); // push header coordinate into plotcordx while also creating a lower array level
+				plotcordy.push([allShips[i].Subtype]); // same thing for plotcordy
+				plotcordx[plotcordx.length-1].push(allShips[i][chosenx]); // push x coordinate from ship data into newly created subtype category
+				plotcordy[plotcordy.length-1].push(allShips[i][choseny]); // same thing for y coordinate
+				position[allShips[i].Subtype]=[]; // create an empty category for the newly found OSV subtype in the position object
+				position[allShips[i].Subtype].push(i); // push the current ship row index into it
+			}
+			found=false // start the next loop assuming we have not created the corresponding subtype category
 		}
-		if (found==false) { // subtype category has not been created yet
-			plotcordx.push([allShips[i].Subtype+"_x"]); // push header coordinate into plotcordx while also creating a lower array level
-			plotcordy.push([allShips[i].Subtype]); // same thing for plotcordy
-			plotcordx[plotcordx.length-1].push(allShips[i][chosenx]); // push x coordinate from ship data into newly created subtype category
-			plotcordy[plotcordy.length-1].push(allShips[i][choseny]); // same thing for y coordinate
-			position[allShips[i].Subtype]=[]; // create an empty category for the newly found OSV subtype in the position object
-			position[allShips[i].Subtype].push(i); // push the current ship row index into it
-		}
-		found=false // start the next loop assuming we have not created the corresponding subtype category
 	}
-}
 
-position_plot = position; // create a new position_plot vector, so we can use position as a backup when filtering points
-console.log(shipLog.length+" ships contain the necessary data.")
-graph = new plot_chart(plotcordx,plotcordy,y1,y2,x1,x2,chosenx,choseny) // call plot with parsed data
+	position_plot = position; // create a new position_plot vector, so we can use position as a backup when filtering points
+	console.log(shipLog.length+" ships contain the necessary data.")
+	graph = new plot_chart(plotcordx,plotcordy,y1,y2,x1,x2,chosenx,choseny) // call plot with parsed data
 }
 
 function plot_chart(coordx,coordy,miny,maxy,minx,maxx,xname,yname){
