@@ -1,6 +1,6 @@
 # ShipLab
 
-Collection of ship design web tools developed at [Ship Lab, NTNU in Aalesund](http://www.shiplab.hials.org/).  
+Collection of ship design web tools developed at [Ship Lab, NTNU in Aalesund](http://www.shiplab.ntnu.co/).  
 
 Tools:
 
@@ -8,13 +8,13 @@ Tools:
 	
 	Includes descriptive list and [D3 tree](https://bl.ocks.org/mbostock/4339083) based on the SFI Group System. Per default, it includes the ship components' names, cost and corresponding person-hours.
 	
-	Project documented at: http://www.shiplab.hials.org/?page_id=179.
+	Project documented at: http://www.shiplab.ntnu.co/?page_id=179.
 	
 2. Modular Ship
 	
 	Dynamic table with basic information about the chosen modules and the ship as a whole.
 	
-	Project documented at: http://www.shiplab.hials.org/?page_id=356.
+	Project documented at: http://www.shiplab.ntnu.co/?page_id=356.
 	
 3. OSV Scatter Plot
 	
