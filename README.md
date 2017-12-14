@@ -1,4 +1,4 @@
-# OSVd3
+# OSV d3
 
 Collection of simple tools for visualization of ship design data.
 
