@@ -1,6 +1,6 @@
-# ShipLab
+# OSVd3
 
-Collection of ship design web tools developed by me at [Ship Lab, NTNU in Aalesund](http://www.shiplab.ntnu.co/).  
+Collection of simple tools fo visualization of ship design data.
 
 Tools:
 
