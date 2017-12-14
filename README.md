@@ -1,6 +1,6 @@
 # OSVd3
 
-Collection of simple tools fo visualization of ship design data.
+Collection of simple tools for visualization of ship design data.
 
 Tools:
 
